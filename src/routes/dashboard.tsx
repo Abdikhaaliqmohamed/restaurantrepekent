@@ -14,7 +14,15 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardLayout,
 });
 
-const nav = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+  badge?: string;
+};
+
+const nav: NavItem[] = [
   { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
   { to: "/dashboard/orders", label: "Orders", icon: Receipt, badge: "12" },
   { to: "/dashboard/menu", label: "Menu & Products", icon: ChefHat },
@@ -24,7 +32,7 @@ const nav = [
   { to: "/dashboard/suppliers", label: "Suppliers", icon: Boxes },
   { to: "/dashboard/users", label: "Users & Roles", icon: Users },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
-] as const;
+];
 
 function DashboardLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
