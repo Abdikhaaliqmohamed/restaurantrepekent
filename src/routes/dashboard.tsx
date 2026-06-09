@@ -53,7 +53,7 @@ function DashboardLayout() {
               return (
                 <Link
                   key={item.to}
-                  to={item.to}
+                  to={item.to as "/dashboard"}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     active ? "bg-accent text-primary" : "text-foreground/70 hover:bg-accent/50"
                   }`}
