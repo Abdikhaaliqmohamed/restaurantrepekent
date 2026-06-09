@@ -1,78 +1,107 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Filter } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { usePOS, orderTotals, fmt } from "@/lib/pos-store";
+import { Receipt, X } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/orders")({
   component: Orders,
 });
 
-const orders = [
-  { id: "#8821", table: "T3", server: "Elena", items: 3, amount: "$18.50", status: "Open", time: "2 min ago" },
-  { id: "#8820", table: "T1", server: "Marcus", items: 2, amount: "$84.00", status: "Paid", time: "12 min ago" },
-  { id: "#8819", table: "Online", server: "—", items: 1, amount: "$42.00", status: "Pickup", time: "14 min ago" },
-  { id: "#8818", table: "T6", server: "Sarah", items: 4, amount: "$48.00", status: "Paid", time: "18 min ago" },
-  { id: "#8817", table: "T4", server: "Elena", items: 5, amount: "$76.50", status: "Paid", time: "23 min ago" },
-  { id: "#8816", table: "T8", server: "Marcus", items: 2, amount: "$32.00", status: "Open", time: "28 min ago" },
-  { id: "#8815", table: "T2", server: "Sarah", items: 6, amount: "$142.00", status: "Paid", time: "35 min ago" },
-  { id: "#8814", table: "Bar 1", server: "Marcus", items: 3, amount: "$54.00", status: "Voided", time: "42 min ago" },
-];
-
-const tabs = ["All", "Open", "Paid", "Pickup", "Voided"];
-
 function Orders() {
+  const orders = usePOS((s) => s.orders);
+  const tables = usePOS((s) => s.tables);
+  const { setStatus, voidOrder } = usePOS.getState();
+
+  const groups: { key: string; label: string; rows: typeof orders }[] = [
+    { key: "open", label: "Open", rows: orders.filter((o) => o.status === "open") },
+    { key: "sent", label: "In Kitchen", rows: orders.filter((o) => o.status === "sent") },
+    { key: "served", label: "Served", rows: orders.filter((o) => o.status === "served") },
+    { key: "paid", label: "Paid (Today)", rows: orders.filter((o) => o.status === "paid").slice(0, 20) },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-end">
         <div>
           <h1 className="font-display text-3xl italic">Orders</h1>
-          <p className="text-sm text-muted-foreground">All tickets across the floor.</p>
+          <p className="text-sm text-muted-foreground">Live order board across stations.</p>
         </div>
-        <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-          <Plus className="h-4 w-4" /> New Order
-        </button>
+        <Link
+          to="/dashboard/pos"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold uppercase tracking-wider"
+        >
+          + New Check
+        </Link>
       </div>
 
-      <div className="flex items-center justify-between border-b border-border">
-        <div className="flex">
-          {tabs.map((t, i) => (
-            <button key={t} className={`px-4 py-3 text-xs font-bold uppercase tracking-wider border-b-2 ${i === 0 ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-              {t}
-            </button>
-          ))}
+      {orders.length === 0 && (
+        <div className="bg-surface border border-dashed border-border rounded-xl p-12 text-center">
+          <Receipt className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+          <p className="text-sm text-muted-foreground">No orders yet. Open the cashier to start.</p>
         </div>
-        <button className="text-xs flex items-center gap-1 text-muted-foreground"><Filter className="h-3 w-3" /> Filter</button>
-      </div>
+      )}
 
-      <div className="bg-surface border border-border rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-accent/40 text-muted-foreground">
-            <tr>
-              {["Order", "Table", "Server", "Items", "Status", "Time", "Amount"].map((h) => (
-                <th key={h} className="p-4 text-left font-medium text-xs uppercase tracking-wider">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {orders.map((o) => (
-              <tr key={o.id} className="hover:bg-accent/20">
-                <td className="p-4 font-mono">{o.id}</td>
-                <td className="p-4 font-display italic">{o.table}</td>
-                <td className="p-4">{o.server}</td>
-                <td className="p-4 text-muted-foreground">{o.items}</td>
-                <td className="p-4">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${
-                    o.status === "Paid" ? "bg-success/10 text-success" :
-                    o.status === "Pickup" ? "bg-warning/15 text-warning-foreground" :
-                    o.status === "Voided" ? "bg-destructive/10 text-destructive" :
-                    "bg-primary/10 text-primary"
-                  }`}>{o.status}</span>
-                </td>
-                <td className="p-4 text-muted-foreground text-xs">{o.time}</td>
-                <td className="p-4 text-right font-mono">{o.amount}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {groups.map(
+        (g) =>
+          g.rows.length > 0 && (
+            <div key={g.key}>
+              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                {g.label} · {g.rows.length}
+              </h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {g.rows.map((o) => {
+                  const t = tables.find((x) => x.id === o.tableId);
+                  const total = orderTotals(o.lines);
+                  return (
+                    <div key={o.id} className="bg-surface border border-border rounded-xl p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="font-display text-lg">#{o.number}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {t ? `${t.label} · ${o.guests}p` : "Quick sale"} · {new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                        </div>
+                        <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded bg-primary/10 text-primary">
+                          {o.status}
+                        </span>
+                      </div>
+                      <ul className="text-xs space-y-1 mb-3 max-h-32 overflow-y-auto">
+                        {o.lines.map((l) => (
+                          <li key={l.itemId} className="flex justify-between">
+                            <span>
+                              <span className="font-mono">{l.qty}×</span> {l.name}
+                            </span>
+                            <span className="font-mono text-muted-foreground">{fmt(l.price * l.qty)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="flex justify-between items-center pt-2 border-t border-border">
+                        <span className="font-mono font-semibold">{fmt(total.total)}</span>
+                        <div className="flex gap-1">
+                          {o.status === "sent" && (
+                            <button
+                              onClick={() => setStatus(o.id, "served")}
+                              className="text-[10px] uppercase font-bold px-2 py-1 rounded bg-success/10 text-success"
+                            >
+                              Mark Served
+                            </button>
+                          )}
+                          {o.status !== "paid" && o.status !== "void" && (
+                            <button
+                              onClick={() => voidOrder(o.id)}
+                              className="text-[10px] uppercase font-bold px-2 py-1 rounded text-destructive hover:bg-destructive/10"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )
+      )}
     </div>
   );
 }

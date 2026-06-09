@@ -1,8 +1,9 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Receipt, ChefHat, LayoutGrid, CreditCard,
-  BarChart3, Boxes, Users, Settings, Bell, Search, UtensilsCrossed,
+  BarChart3, Boxes, Users, Settings, Bell, Search, UtensilsCrossed, Terminal,
 } from "lucide-react";
+import { usePOS } from "@/lib/pos-store";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -19,12 +20,12 @@ type NavItem = {
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
-  badge?: string;
 };
 
 const nav: NavItem[] = [
   { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
-  { to: "/dashboard/orders", label: "Orders", icon: Receipt, badge: "12" },
+  { to: "/dashboard/pos", label: "Cashier (POS)", icon: Terminal },
+  { to: "/dashboard/orders", label: "Orders", icon: Receipt },
   { to: "/dashboard/menu", label: "Menu & Products", icon: ChefHat },
   { to: "/dashboard/tables", label: "Floor Map", icon: LayoutGrid },
   { to: "/dashboard/payments", label: "Payments", icon: CreditCard },
@@ -60,9 +61,7 @@ function DashboardLayout() {
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
                   <span className="flex-1">{item.label}</span>
-                  {"badge" in item && item.badge ? (
-                    <span className="font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">{item.badge}</span>
-                  ) : null}
+
                 </Link>
               );
             })}
