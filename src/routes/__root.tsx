@@ -63,18 +63,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Mise en Place — Restaurant Cashier Management" },
+      { title: "Restaurant Cashier Management tep" },
       {
         name: "description",
         content:
           "A Laravel-powered cashier and operations platform for modern restaurants. Orders, tables, payments, inventory and analytics in one elegant dashboard.",
       },
-      { property: "og:title", content: "Mise en Place — Restaurant Cashier Management" },
+      { property: "og:title", content: "Restaurant Cashier Management tep" },
       {
         property: "og:description",
         content: "Orders, tables, payments and analytics for modern restaurants.",
       },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Restaurant Cashier Management tep" },
+      { name: "description", content: "Your Website Helper is a React-based application that functions as a restaurant cashier system." },
+      { property: "og:description", content: "Your Website Helper is a React-based application that functions as a restaurant cashier system." },
+      { name: "twitter:description", content: "Your Website Helper is a React-based application that functions as a restaurant cashier system." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c3a5fd37-01bc-4bd3-a46e-ca2e58643f53/id-preview-1955e866--6119e5de-0497-419f-a330-40228f3e56e8.lovable.app-1780991477242.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c3a5fd37-01bc-4bd3-a46e-ca2e58643f53/id-preview-1955e866--6119e5de-0497-419f-a330-40228f3e56e8.lovable.app-1780991477242.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
