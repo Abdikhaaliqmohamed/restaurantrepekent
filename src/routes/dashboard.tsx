@@ -61,9 +61,7 @@ function DashboardLayout() {
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
                   <span className="flex-1">{item.label}</span>
-                  {"badge" in item && item.badge ? (
-                    <span className="font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">{item.badge}</span>
-                  ) : null}
+
                 </Link>
               );
             })}
